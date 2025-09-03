@@ -12,12 +12,35 @@ import {
   Calendar,
   CheckCircle,
   Clock,
-  AlertCircle
+  AlertCircle,
+  Brain,
+  LogOut
 } from 'lucide-react'
+import { useAuth } from '@/hooks/useAuth'
+import { useToast } from '@/components/ui/use-toast'
 import dashboardHero from '@/assets/dashboard-hero.jpg'
+import AiDataAnalyzer from '@/components/AiDataAnalyzer'
 
 const Index = () => {
-  const [currentTime, setCurrentTime] = useState(new Date())
+  const { user, signOut } = useAuth();
+  const { toast } = useToast();
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      toast({
+        title: "Logout realizado",
+        description: "Você foi desconectado com sucesso",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro no logout",
+        description: "Falha ao desconectar",
+        variant: "destructive",
+      });
+    }
+  };
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -257,6 +280,32 @@ const Index = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* AI Data Analyzer */}
+      <Card className="bg-gradient-card shadow-card border-border/50">
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-gradient-primary rounded-md flex items-center justify-center">
+                <Brain className="w-4 h-4 text-white" />
+              </div>
+              Análise Inteligente de Dados
+            </div>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleSignOut}
+              className="flex items-center gap-2"
+            >
+              <LogOut className="w-4 h-4" />
+              Sair
+            </Button>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <AiDataAnalyzer />
+        </CardContent>
+      </Card>
 
       {/* System Status */}
       <Card className="bg-gradient-card shadow-card border-border/50">
