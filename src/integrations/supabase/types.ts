@@ -14,7 +14,169 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      ai_queries: {
+        Row: {
+          chart_config: Json | null
+          created_at: string
+          id: string
+          insights: string | null
+          question: string
+          results: Json | null
+          sql_query: string
+          user_id: string
+        }
+        Insert: {
+          chart_config?: Json | null
+          created_at?: string
+          id?: string
+          insights?: string | null
+          question: string
+          results?: Json | null
+          sql_query: string
+          user_id: string
+        }
+        Update: {
+          chart_config?: Json | null
+          created_at?: string
+          id?: string
+          insights?: string | null
+          question?: string
+          results?: Json | null
+          sql_query?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      clients: {
+        Row: {
+          company_id: string | null
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clients_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      companies: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      processes: {
+        Row: {
+          client_id: string | null
+          created_at: string
+          id: string
+          process_type: string
+          received_date: string
+          status: string | null
+          updated_at: string
+          user_id: string | null
+          value: number | null
+        }
+        Insert: {
+          client_id?: string | null
+          created_at?: string
+          id?: string
+          process_type: string
+          received_date?: string
+          status?: string | null
+          updated_at?: string
+          user_id?: string | null
+          value?: number | null
+        }
+        Update: {
+          client_id?: string | null
+          created_at?: string
+          id?: string
+          process_type?: string
+          received_date?: string
+          status?: string | null
+          updated_at?: string
+          user_id?: string | null
+          value?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "processes_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          full_name: string | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
