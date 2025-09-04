@@ -57,7 +57,7 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent className="px-2 py-4">
-        <SidebarGroup className="group-data-[collapsible=icon]:hidden">
+        <SidebarGroup>
           <SidebarGroupLabel className={state === "collapsed" ? "sr-only" : ""}>
             Navegação
           </SidebarGroupLabel>

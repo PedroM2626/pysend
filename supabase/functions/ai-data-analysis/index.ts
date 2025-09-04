@@ -28,8 +28,11 @@ serve(async (req) => {
     }
 
     const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
-    if (!openAIApiKey) {
-      throw new Error('OpenAI API key não configurada');
+    const opensourceApiKey = Deno.env.get('OPENSOURCE_API_KEY');
+    const grokApiKey = Deno.env.get('GROK_API_KEY');
+    
+    if (!openAIApiKey && !opensourceApiKey && !grokApiKey) {
+      throw new Error('Nenhuma API key configurada (OpenAI, OpenSource ou Grok)');
     }
 
     // Create Supabase client
@@ -73,24 +76,97 @@ IMPORTANTES:
 
 Retorne APENAS a consulta SQL, sem explicações:`;
 
-    const sqlResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          { role: 'user', content: sqlPrompt }
-        ],
-        max_tokens: 500,
-        temperature: 0.1,
-      }),
-    });
+    // Helper function to call AI APIs with fallback
+    async function callAI(prompt: string, maxTokens = 500) {
+      let response: Response;
+      let errorMsg = '';
 
-    const sqlData = await sqlResponse.json();
-    const sqlQuery = sqlData.choices[0].message.content.trim();
+      // Try OpenAI first
+      if (openAIApiKey) {
+        try {
+          response = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${openAIApiKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: 'gpt-4o-mini',
+              messages: [{ role: 'user', content: prompt }],
+              max_tokens: maxTokens,
+              temperature: 0.1,
+            }),
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            return data.choices[0].message.content;
+          }
+          errorMsg += `OpenAI failed: ${response.status}; `;
+        } catch (error) {
+          errorMsg += `OpenAI error: ${error.message}; `;
+        }
+      }
+
+      // Try OpenSource API (DeepSeek)
+      if (opensourceApiKey) {
+        try {
+          response = await fetch('https://api.openrouter.ai/api/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${opensourceApiKey}`,
+              'Content-Type': 'application/json',
+              'HTTP-Referer': 'https://supabase.com',
+            },
+            body: JSON.stringify({
+              model: 'deepseek/deepseek-chat',
+              messages: [{ role: 'user', content: prompt }],
+              max_tokens: maxTokens,
+              temperature: 0.1,
+            }),
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            return data.choices[0].message.content;
+          }
+          errorMsg += `OpenSource failed: ${response.status}; `;
+        } catch (error) {
+          errorMsg += `OpenSource error: ${error.message}; `;
+        }
+      }
+
+      // Try Grok API
+      if (grokApiKey) {
+        try {
+          response = await fetch('https://api.x.ai/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${grokApiKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: 'grok-beta',
+              messages: [{ role: 'user', content: prompt }],
+              max_tokens: maxTokens,
+              temperature: 0.1,
+            }),
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            return data.choices[0].message.content;
+          }
+          errorMsg += `Grok failed: ${response.status}; `;
+        } catch (error) {
+          errorMsg += `Grok error: ${error.message}; `;
+        }
+      }
+
+      throw new Error(`Todas as APIs falharam: ${errorMsg}`);
+    }
+
+    const sqlQuery = (await callAI(sqlPrompt, 500)).trim();
     
     console.log('SQL gerado:', sqlQuery);
 
@@ -154,24 +230,7 @@ Forneça uma análise em português com:
 
 Seja específico e mencione números/percentuais quando relevante.`;
 
-      const insightsResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${openAIApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o-mini',
-          messages: [
-            { role: 'user', content: insightsPrompt }
-          ],
-          max_tokens: 1000,
-          temperature: 0.3,
-        }),
-      });
-
-      const insightsData = await insightsResponse.json();
-      const insights = insightsData.choices[0].message.content;
+      const insights = await callAI(insightsPrompt, 1000);
 
       // Determine best chart type and configuration
       const chartConfig: ChartConfig = {
@@ -225,24 +284,7 @@ Forneça uma análise em português com:
 
 Seja específico e mencione números/percentuais quando relevante.`;
 
-    const insightsResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          { role: 'user', content: insightsPrompt }
-        ],
-        max_tokens: 1000,
-        temperature: 0.3,
-      }),
-    });
-
-    const insightsData = await insightsResponse.json();
-    const insights = insightsData.choices[0].message.content;
+    const insights = await callAI(insightsPrompt, 1000);
 
     // Determine best chart type based on data
     let chartConfig: ChartConfig = {
